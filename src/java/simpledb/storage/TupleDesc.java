@@ -219,22 +219,22 @@ public class TupleDesc implements Serializable {
      */
 
     public boolean equals(Object o) {
-        Debug.log("**111****");
+        //Debug.log("**111****");
         if( !( o instanceof  TupleDesc))
         {
             return  false;
         }
-        Debug.log("**2***");
+        //Debug.log("**2***");
         TupleDesc a = (TupleDesc) o;
         if(m_tuple_list.size() != a.numFields())
             return false;
-        Debug.log("**3***");
+        //Debug.log("**3***");
         for(int i = 0; i < m_tuple_list.size(); i++) {
             if (m_tuple_list.get(i).fieldType != a.m_tuple_list.get(i).fieldType||
                     m_tuple_list.get(i).fieldName != a.m_tuple_list.get(i).fieldName )
                 return false;
         }
-        Debug.log("**4***");
+        //Debug.log("**4***");
         return true;
     }
 

@@ -31,11 +31,10 @@ public class Debug {
 
   /** Log message if the log level >= level. Uses printf. */
   public static void log(int level, String message, Object... args) {
-    if (isEnabled(level)) {
-        System.out.printf(message, args);
-        System.out.println();
-    }
+      System.out.printf(message, args);
+      System.out.println();
   }
+
 
   /** @return true if level is being logged. */
   public static boolean isEnabled(int level) {
@@ -51,4 +50,6 @@ public class Debug {
   public static void log(String message, Object... args) {
     log(DEFAULT_LEVEL, message, args);
   }
+
+
 }

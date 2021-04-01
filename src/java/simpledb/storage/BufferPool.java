@@ -1,15 +1,19 @@
 package simpledb.storage;
 
-import simpledb.common.Database;
-import simpledb.common.Permissions;
-import simpledb.common.DbException;
-import simpledb.common.DeadlockException;
+import simpledb.common.*;
 import simpledb.transaction.TransactionAbortedException;
 import simpledb.transaction.TransactionId;
 
 import java.io.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -40,10 +44,12 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
         // some code goes here
+//        pageSize = numPages;
+
     }
     
     public static int getPageSize() {
-      return pageSize;
+        return pageSize;
     }
     
     // THIS FUNCTION SHOULD ONLY BE USED FOR TESTING!!
@@ -56,6 +62,9 @@ public class BufferPool {
     	BufferPool.pageSize = DEFAULT_PAGE_SIZE;
     }
 
+    ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
+    private Map<Integer,Page> m_bufferPool = new ConcurrentHashMap<>();
     /**
      * Retrieve the specified page with the associated permissions.
      * Will acquire a lock and may block if that lock is held by another
@@ -71,8 +80,41 @@ public class BufferPool {
      * @param pid the ID of the requested page
      * @param perm the requested permissions on the page
      */
+
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
+
+        if(perm==Permissions.READ_ONLY)
+        {
+            try {
+                readWriteLock.readLock().lock();
+                DbFile dbFile = Database.getCatalog().getDatabaseFile(pid.getTableId());
+                Debug.log("Tranid : %s PageId %s begin to Read ONLY",tid,pid);
+                Page page = dbFile.readPage(pid);
+                m_bufferPool.put(pid.hashCode(), page);
+                return m_bufferPool.get(pid.hashCode());
+            }
+            finally {
+                readWriteLock.readLock().unlock();
+            }
+        }
+        else if(perm == Permissions.READ_WRITE)
+        {
+
+            try {
+                readWriteLock.writeLock().lock();
+                DbFile dbFile = Database.getCatalog().getDatabaseFile(pid.getTableId());
+                Debug.log("Tranid : %s PageId %s begin to Read ONLY",tid,pid);
+                Page page = dbFile.readPage(pid);
+                m_bufferPool.put(pid.hashCode(), page);
+                return m_bufferPool.get(pid.hashCode());
+            }
+            finally {
+                readWriteLock.writeLock().unlock();
+            }
+
+        }
+
         // some code goes here
         return null;
     }

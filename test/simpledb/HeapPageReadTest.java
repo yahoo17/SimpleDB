@@ -2,6 +2,7 @@ package simpledb;
 
 import simpledb.TestUtil.SkeletonFile;
 import simpledb.common.Database;
+import simpledb.common.Debug;
 import simpledb.common.Utility;
 import simpledb.storage.*;
 import simpledb.systemtest.SimpleDbTestBase;
