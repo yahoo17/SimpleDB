@@ -1,5 +1,6 @@
 package simpledb.execution;
 
+import simpledb.common.Debug;
 import simpledb.storage.Field;
 import simpledb.storage.Tuple;
 
@@ -12,6 +13,9 @@ public class Predicate implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private int m_field_number;
+    private Op m_op;
+    private Field m_operand;
     /** Constants used for return codes in Field.compare */
     public enum Op implements Serializable {
         EQUALS, GREATER_THAN, LESS_THAN, LESS_THAN_OR_EQ, GREATER_THAN_OR_EQ, LIKE, NOT_EQUALS;
@@ -46,7 +50,7 @@ public class Predicate implements Serializable {
         }
 
     }
-    
+
     /**
      * Constructor.
      * 
@@ -59,6 +63,10 @@ public class Predicate implements Serializable {
      */
     public Predicate(int field, Op op, Field operand) {
         // some code goes here
+        m_field_number = field;
+        m_op = op;
+        m_operand = operand;
+        //Debug.log(this.toString());
     }
 
     /**
@@ -67,7 +75,7 @@ public class Predicate implements Serializable {
     public int getField()
     {
         // some code goes here
-        return -1;
+        return m_field_number;
     }
 
     /**
@@ -76,7 +84,7 @@ public class Predicate implements Serializable {
     public Op getOp()
     {
         // some code goes here
-        return null;
+        return m_op;
     }
     
     /**
@@ -85,7 +93,7 @@ public class Predicate implements Serializable {
     public Field getOperand()
     {
         // some code goes here
-        return null;
+        return m_operand;
     }
     
     /**
@@ -100,7 +108,7 @@ public class Predicate implements Serializable {
      */
     public boolean filter(Tuple t) {
         // some code goes here
-        return false;
+       return t.getField(m_field_number).compare(m_op, m_operand);
     }
 
     /**
@@ -109,6 +117,6 @@ public class Predicate implements Serializable {
      */
     public String toString() {
         // some code goes here
-        return "";
+        return "f = "+ getField() + " op" + " = " + m_op.toString() + m_operand +" = "+ m_operand.toString();
     }
 }

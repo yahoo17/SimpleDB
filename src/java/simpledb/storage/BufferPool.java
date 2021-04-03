@@ -42,9 +42,11 @@ public class BufferPool {
      *
      * @param numPages maximum number of pages in this buffer pool.
      */
+    private int numPages ;
     public BufferPool(int numPages) {
         // some code goes here
 //        pageSize = numPages;
+        this.numPages = numPages;
 
     }
     
@@ -88,11 +90,27 @@ public class BufferPool {
         {
             try {
                 readWriteLock.readLock().lock();
+                Page cachePage = m_bufferPool.get(pid.hashCode());
+                if(cachePage != null)
+                {
+                    return cachePage;
+                }
+
                 DbFile dbFile = Database.getCatalog().getDatabaseFile(pid.getTableId());
-                Debug.log("Tranid : %s PageId %s begin to Read ONLY",tid,pid);
+                // Debug.log("Tranid : %s PageId %s begin to Read ONLY",tid,pid);
                 Page page = dbFile.readPage(pid);
-                m_bufferPool.put(pid.hashCode(), page);
-                return m_bufferPool.get(pid.hashCode());
+
+                if(page == null)
+                    throw new DbException("page not in DB");
+                else
+                {
+                    if(m_bufferPool.size()>=numPages)
+                        throw new DbException("buffer pool is full");
+                    m_bufferPool.put(pid.hashCode(), page);
+                    //assert (m_bufferPool.get(pid.hashCode()) == null);
+                    return m_bufferPool.get(pid.hashCode());
+                }
+
             }
             finally {
                 readWriteLock.readLock().unlock();

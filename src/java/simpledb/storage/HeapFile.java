@@ -71,24 +71,65 @@ public class HeapFile implements DbFile {
     // see DbFile.java for javadocs
     public Page readPage(PageId pid) {
         // some code goes here
-        try {
+        int tableId = pid.getTableId();
+        int pgNo = pid.getPageNumber();
 
-            int singelPageSize = BufferPool.getPageSize();
-
-            byte[] data = new byte[BufferPool.getPageSize()];
-            FileInputStream fi =  new FileInputStream(m_f);
-
-            fi.read(data,pid.getPageNumber() * singelPageSize, singelPageSize);
-
-            HeapPage t = new HeapPage((HeapPageId) pid, data);
-            return  t;
-
-        }catch (Exception e)
-        {
-
+        RandomAccessFile f = null;
+        try{
+            f = new RandomAccessFile(m_f,"r");
+            if((pgNo+1)*BufferPool.getPageSize() > f.length()){
+                f.close();
+                throw new IllegalArgumentException(String.format("table %d page %d is invalid", tableId, pgNo));
+            }
+            byte[] bytes = new byte[BufferPool.getPageSize()];
+            f.seek(pgNo * BufferPool.getPageSize());
+            // big end
+            int read = f.read(bytes,0,BufferPool.getPageSize());
+            if(read != BufferPool.getPageSize()){
+                throw new IllegalArgumentException(String.format("table %d page %d read %d bytes", tableId, pgNo, read));
+            }
+            HeapPageId id = new HeapPageId(pid.getTableId(),pid.getPageNumber());
+            return new HeapPage(id,bytes);
+        }catch (IOException e){
+            e.printStackTrace();
+        }finally {
+            try{
+                f.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }
-
-        return null;
+        throw new IllegalArgumentException(String.format("table %d page %d is invalid", tableId, pgNo));
+//        int tableId = pid.getTableId();
+//        int pageNumber = pid.getPageNumber();
+//        int singelPageSize = BufferPool.getPageSize();
+//
+//        try {
+//            if((pageNumber+1) * singelPageSize > m_f.length()){
+//                throw new IllegalArgumentException(String.format("table %d page %d is invalid", tableId, pageNumber));
+//            }
+//            FileInputStream fi =  new FileInputStream(m_f);
+//
+//            byte[] data = new byte[singelPageSize];
+//
+//            fi.read(data,pid.getPageNumber() * singelPageSize, singelPageSize);
+//
+//            HeapPageId id = new HeapPageId(pid.getTableId(),pid.getPageNumber());
+//            HeapPage t = new HeapPage(id, data);
+//            return  t;
+//
+//        }catch (Exception e)
+//        {
+//            e.printStackTrace();
+//        }
+//        finally {
+//            try{
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+//
+//        }
+//        throw new IllegalArgumentException(String.format("table %d page %d is invalid", tableId, pageNumber));
     }
 
     // see DbFile.java for javadocs

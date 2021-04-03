@@ -13,12 +13,24 @@ import java.util.logging.Logger;
 /**
  * TupleDesc describes the schema of a tuple.
  */
-public class TupleDesc implements Serializable {
+public class TupleDesc implements Serializable ,Cloneable{
 
     /**
      * A help class to facilitate organizing the information of each field
      * */
     public  List<TDItem> m_tuple_list = new ArrayList<TDItem>();
+
+    @Override
+    public TupleDesc clone() throws CloneNotSupportedException {
+        TupleDesc tupleDesc = (TupleDesc) super.clone();
+        tupleDesc.m_tuple_list = new ArrayList<>();
+        for(Iterator<TDItem> iterator = this.m_tuple_list.iterator(); iterator.hasNext();)
+        {
+            TDItem old = iterator.next();
+            tupleDesc.m_tuple_list.add(new TDItem(old.fieldType,old.fieldName));
+        }
+        return tupleDesc;
+    }
 
     private long INT_COUNT = 0;
     private long STRING_COUNT =0;
