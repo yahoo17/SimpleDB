@@ -29,11 +29,11 @@ public class StringAggregator implements Aggregator {
     private Integer gbfield;
     private Type gbfieldtype;
     private Integer afield;
-    private Op what;
+    public Op what;
 
     public Map<Field,Integer> mpCount = new HashMap<>();
 
-    private TupleDesc tupleDesc;
+    public TupleDesc tupleDesc;
 
 
     public StringAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
@@ -41,9 +41,21 @@ public class StringAggregator implements Aggregator {
         this.gbfieldtype = gbfieldtype;
         this.afield = afield;
         this.what = what;
-        Type [] types = {gbfieldtype, Type.INT_TYPE};
-        String [] name ={"name1","name2"};
-        tupleDesc = new TupleDesc(types,name);
+
+        if(gbfield==NO_GROUPING)
+        {
+            Debug.log("No_grouping");
+            Type [] types= {Type.INT_TYPE};
+            String [] names = {"name2"};
+            tupleDesc = new TupleDesc(types,names);
+        }
+        else
+        {
+            Type [] types= {gbfieldtype,Type.INT_TYPE};
+            String [] names = {"name1", "name2"};
+            tupleDesc = new TupleDesc(types,names);
+        }
+
     }
 
     /**
@@ -53,7 +65,7 @@ public class StringAggregator implements Aggregator {
     public void mergeTupleIntoGroup(Tuple tup) {
         // some code goes here
         Field field = tup.getField(gbfield);
-        if(mpCount.get(field) == null)
+        if(!mpCount.containsKey(field))
         {
             mpCount.put(field,1);
         }
@@ -72,60 +84,6 @@ public class StringAggregator implements Aggregator {
      *   grouping. The aggregateVal is determined by the type of
      *   aggregate specified in the constructor.
      */
-    private class StringOpIterator implements OpIterator{
-        private StringAggregator stringAggregator;
-        private List<Tuple> m_list = new ArrayList<Tuple>();
-        private Iterator<Tuple> iterator;
-        StringOpIterator(StringAggregator stringAggregator)
-        {
-            this.stringAggregator = stringAggregator;
-            if(stringAggregator.what == Op.COUNT)
-            {
-                for(Map.Entry<Field,Integer> entry : stringAggregator.mpCount.entrySet())
-                {
-                    Tuple tuple = new Tuple(stringAggregator.tupleDesc);
-                    tuple.setField(0,entry.getKey());
-                    tuple.setField(1, new IntField(entry.getValue()));
-                    m_list.add(tuple);
-                }
-            }else
-            {
-                Debug.log("No correct Op stringAggregator");
-            }
-
-        }
-        @Override
-        public void open() throws DbException, TransactionAbortedException {
-            iterator = m_list.iterator();
-        }
-
-        @Override
-        public boolean hasNext() throws DbException, TransactionAbortedException {
-            return iterator.hasNext();
-        }
-
-        @Override
-        public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
-            return iterator.next();
-        }
-
-        @Override
-        public void rewind() throws DbException, TransactionAbortedException {
-            close();
-            open();
-        }
-
-        @Override
-        public TupleDesc getTupleDesc() {
-            return tupleDesc;
-        }
-
-        @Override
-        public void close() {
-            iterator = null;
-
-        }
-    }
     public OpIterator iterator() {
         return new StringOpIterator(this);
     }

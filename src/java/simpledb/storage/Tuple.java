@@ -1,5 +1,7 @@
 package simpledb.storage;
 
+import simpledb.common.Debug;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +21,7 @@ public class Tuple implements Serializable {
     private RecordId m_recordId;
 
     public List<Field> m_fieldList = new ArrayList<Field>();
+
     /**
      * Create a new tuple with the specified schema (type).
      *
@@ -59,7 +62,6 @@ public class Tuple implements Serializable {
     public void setRecordId(RecordId rid) {
         // some code goes her
         m_recordId = rid;
-        return;
     }
 
     /**
@@ -72,10 +74,11 @@ public class Tuple implements Serializable {
      */
     public void setField(int i, Field f) {
         // some code goes here
-        if(i >= m_fieldList.size())
-            m_fieldList.add(i,f);
-        else
-            m_fieldList.set(i, f);
+//        if(i >= m_fieldList.size())
+//            m_fieldList.add(i,f);
+//        else
+//            m_fieldList.set(i, f);
+        m_fieldList.add(i,f);
     }
 
     /**
@@ -85,10 +88,9 @@ public class Tuple implements Serializable {
      *            field index to return. Must be a valid index.
      */
     public Field getField(int i) {
-        // some code goes here
-        if(i>m_fieldList.size())
-                return  null;
-        return m_fieldList.get(i);
+        if(i>=0 && i < m_tupleDesc.numFields())
+            return m_fieldList.get(i);
+        return null;
     }
 
     /**
@@ -101,12 +103,16 @@ public class Tuple implements Serializable {
      */
     public String toString() {
         // some code goes here
-        String ans = new String();
-
+        String ans = "";
+        Debug.log("Tostring "+String.valueOf(m_fieldList.size()-1));
         for(int i = 0; i < m_fieldList.size()-1; i++)
+        {
             ans += m_fieldList.get(i).toString()+ "\t";
+        }
 
+        Debug.log("A:"+ans);
         ans += m_fieldList.get(m_fieldList.size()-1).toString();
+        Debug.log("B:"+ans);
         return ans;
 
         // throw new UnsupportedOperationException("Implement this");

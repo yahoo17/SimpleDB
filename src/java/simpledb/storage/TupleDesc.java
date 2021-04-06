@@ -265,11 +265,11 @@ public class TupleDesc implements Serializable ,Cloneable{
      */
     public String toString() {
         // some code goes here
-        String ans = new String();
+        String ans = "";
         for(int i = 0; i < m_tuple_list.size(); i++)
         {
             ans += m_tuple_list.get(i).fieldType.toString() + '(' + m_tuple_list.get(i).fieldName + ')';
         }
-        return "";
+        return ans;
     }
 }

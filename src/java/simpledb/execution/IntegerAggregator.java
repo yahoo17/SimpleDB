@@ -18,6 +18,21 @@ public class IntegerAggregator implements Aggregator {
 
     private static final long serialVersionUID = 1L;
 
+    private int gbfield;
+    private Type gbfieldtype;
+    private int afield;
+    public Op what;
+
+    public TupleDesc tupleDesc;
+
+
+    // sum score, groupby college
+    public Map<Field,Integer> mpSum = new HashMap<>();
+    public Map<Field,Integer> mpCount = new HashMap<>();
+    public Map<Field,Integer> mpMax = new HashMap<>();
+    public Map<Field,Integer> mpMin = new HashMap<>();
+    //average can be compute;
+
     /**
      * Aggregate constructor
      * 
@@ -33,29 +48,26 @@ public class IntegerAggregator implements Aggregator {
      *            the aggregation operator
      */
 
-    private int gbfield;
-    private Type gbfieldtype;
-    private int afield;
-    public Op what;
-
-    // sum score, groupby college
-    public Map<Field,Integer> mpSum = new HashMap<>();
-    public Map<Field,Integer> mpCount = new HashMap<>();
-    public Map<Field,Integer> mpMax = new HashMap<>();
-    public Map<Field,Integer> mpMin = new HashMap<>();
-    //average can be compute;
-
-
-
     public IntegerAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
         // some code goes here
         this.gbfield = gbfield;
         this.afield = afield;
         this.gbfieldtype =gbfieldtype;
         this.what = what;
-        Type [] types= {gbfieldtype,Type.INT_TYPE};
-        String [] names = {"name1", "name2"};
-        tupleDesc = new TupleDesc(types,names);
+        if(gbfield==NO_GROUPING || gbfieldtype == null)
+        {
+            // Debug.log("No_grouping");
+            Type [] types= {Type.INT_TYPE};
+            String [] names = {"name0"};
+            tupleDesc = new TupleDesc(types,names);
+        }
+        else
+        {
+            Type [] types= {gbfieldtype,Type.INT_TYPE};
+            String [] names = {"name0", "name1"};
+            tupleDesc = new TupleDesc(types,names);
+        }
+
     }
 
     /**
@@ -69,9 +81,13 @@ public class IntegerAggregator implements Aggregator {
         IntField field = (IntField) tup.getField(afield);
         Integer value = field.getValue();
 
-        Field key = tup.getField(gbfield);
+        Field key = gbfield==-1 ? null: tup.getField(gbfield);
 
-        if(mpCount.get(key) == null)
+        if(key != null && key.getType()!=this.gbfieldtype){
+            throw new IllegalArgumentException("Given tuple has wrong type");
+        }
+
+        if(!mpCount.containsKey(key))
         {
             mpCount.put(key,1);
             mpSum.put(key,value);
@@ -82,7 +98,7 @@ public class IntegerAggregator implements Aggregator {
         {
             mpCount.put(key,mpCount.get(key)+1);
             mpMax.put(key,Math.max(mpMax.get(key),value));
-            mpMin.put(key,Math.min(mpMax.get(key),value));
+            mpMin.put(key,Math.min(mpMin.get(key),value));
             mpSum.put(key,mpSum.get(key)+value);
         }
 
@@ -96,104 +112,9 @@ public class IntegerAggregator implements Aggregator {
      *         aggregateVal is determined by the type of aggregate specified in
      *         the constructor.
      */
-    private TupleDesc tupleDesc;
 
-    private class IntOpIterator implements OpIterator{
-        IntegerAggregator integerAggregator;
-        private Iterator<Tuple> iterator;
 
-        IntOpIterator(IntegerAggregator integerAggregator)
-        {
-            this.integerAggregator = integerAggregator;
-
-            if (integerAggregator.what == Op.SUM) {
-                for (Map.Entry<Field, Integer> entry : integerAggregator.mpSum.entrySet()) {
-                    int sum = entry.getValue();
-                    Tuple tuple = new Tuple(integerAggregator.tupleDesc);
-                    tuple.setField(0, entry.getKey());
-                    tuple.setField(1, new IntField(sum));
-                    m_list.add(tuple);
-                }
-            }
-            else if (integerAggregator.what == Op.AVG)
-            {
-                for (Map.Entry<Field, Integer> entry : integerAggregator.mpCount.entrySet()) {
-                    int count = entry.getValue();
-                    int sum = integerAggregator.mpSum.get(entry.getKey());
-                    Tuple tuple = new Tuple(integerAggregator.tupleDesc);
-                    tuple.setField(0, entry.getKey());
-                    tuple.setField(1, new IntField(sum/count));
-                    m_list.add(tuple);
-                }
-
-            }else if (integerAggregator.what == Op.MAX)
-            {
-                for (Map.Entry<Field, Integer> entry : integerAggregator.mpMax.entrySet()) {
-                    int max = entry.getValue();
-                    Tuple tuple = new Tuple(integerAggregator.tupleDesc);
-                    tuple.setField(0, entry.getKey());
-                    tuple.setField(1, new IntField(max));
-                    m_list.add(tuple);
-                }
-            }else if(integerAggregator.what == Op.MIN)
-            {
-                for (Map.Entry<Field, Integer> entry : integerAggregator.mpMin.entrySet()) {
-                    int min = entry.getValue();
-                    Tuple tuple = new Tuple(integerAggregator.tupleDesc);
-                    tuple.setField(0, entry.getKey());
-                    tuple.setField(1, new IntField(min));
-                    m_list.add(tuple);
-                }
-
-            }else if(integerAggregator.what == Op.COUNT){
-                for (Map.Entry<Field, Integer> entry : integerAggregator.mpCount.entrySet()) {
-                    int count = entry.getValue();
-                    Tuple tuple = new Tuple(integerAggregator.tupleDesc);
-                    tuple.setField(0, entry.getKey());
-                    tuple.setField(1, new IntField(count));
-                    m_list.add(tuple);
-                }
-            }
-            else
-            {
-                Debug.log("this is something wrong! with IntegerAggregator.java un implement in lab7");
-            }
-        }
-        @Override
-        public void open() throws DbException, TransactionAbortedException {
-            iterator = m_list.iterator();
-        }
-
-        @Override
-        public boolean hasNext() throws DbException, TransactionAbortedException {
-            return iterator.hasNext();
-        }
-
-        @Override
-        public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
-            return iterator.next();
-        }
-
-        @Override
-        public void rewind() throws DbException, TransactionAbortedException {
-            close();
-            open();
-        }
-
-        @Override
-        public TupleDesc getTupleDesc() {
-            return integerAggregator.tupleDesc;
-        }
-
-        @Override
-        public void close() {
-            iterator = null;
-
-        }
-    }
-    private List<Tuple> m_list = new ArrayList<>();
     public OpIterator iterator() {
-
         return new IntOpIterator(this);
     }
 
