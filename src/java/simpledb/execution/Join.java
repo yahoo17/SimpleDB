@@ -146,15 +146,16 @@ public class Join extends Operator {
             if( m_joinPredicate.filter(tuple1,tuple2))
             {
                 Tuple res = new Tuple(getTupleDesc());
-                for(int i = 0; i < tuple1.m_fieldList.size(); i ++)
+                int j = 0;
+                for(int i = 0; i < tuple1.m_fieldList.length; i ++)
                 {
-                    Field t = tuple1.m_fieldList.get(i);
-                    res.m_fieldList.add(t);
+                    Field t = tuple1.m_fieldList[i];
+                    res.m_fieldList[j++]=t;
                 }
-                for(int i = 0; i < tuple2.m_fieldList.size(); i++)
+                for(int i = 0; i < tuple2.m_fieldList.length; i++)
                 {
-                    Field t = tuple2.m_fieldList.get(i);
-                    res.m_fieldList.add(t);
+                    Field t = tuple2.m_fieldList[i];
+                    res.m_fieldList[j++]=t;
                 }
                 Debug.log(res.toString());
                 return res;

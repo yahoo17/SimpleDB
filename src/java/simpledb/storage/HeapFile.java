@@ -100,36 +100,6 @@ public class HeapFile implements DbFile {
             }
         }
         throw new IllegalArgumentException(String.format("table %d page %d is invalid", tableId, pgNo));
-//        int tableId = pid.getTableId();
-//        int pageNumber = pid.getPageNumber();
-//        int singelPageSize = BufferPool.getPageSize();
-//
-//        try {
-//            if((pageNumber+1) * singelPageSize > m_f.length()){
-//                throw new IllegalArgumentException(String.format("table %d page %d is invalid", tableId, pageNumber));
-//            }
-//            FileInputStream fi =  new FileInputStream(m_f);
-//
-//            byte[] data = new byte[singelPageSize];
-//
-//            fi.read(data,pid.getPageNumber() * singelPageSize, singelPageSize);
-//
-//            HeapPageId id = new HeapPageId(pid.getTableId(),pid.getPageNumber());
-//            HeapPage t = new HeapPage(id, data);
-//            return  t;
-//
-//        }catch (Exception e)
-//        {
-//            e.printStackTrace();
-//        }
-//        finally {
-//            try{
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
-//
-//        }
-//        throw new IllegalArgumentException(String.format("table %d page %d is invalid", tableId, pageNumber));
     }
 
     // see DbFile.java for javadocs

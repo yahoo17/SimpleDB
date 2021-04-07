@@ -20,7 +20,7 @@ public class Tuple implements Serializable {
     private TupleDesc m_tupleDesc;
     private RecordId m_recordId;
 
-    public List<Field> m_fieldList = new ArrayList<Field>();
+    public Field[] m_fieldList ;
 
     /**
      * Create a new tuple with the specified schema (type).
@@ -32,6 +32,7 @@ public class Tuple implements Serializable {
     public Tuple(TupleDesc td) {
         // some code goes here
         m_tupleDesc = td;
+        m_fieldList = new Field[td.numFields()];
     }
 
     /**
@@ -78,7 +79,7 @@ public class Tuple implements Serializable {
 //            m_fieldList.add(i,f);
 //        else
 //            m_fieldList.set(i, f);
-        m_fieldList.add(i,f);
+        m_fieldList[i] =f;
     }
 
     /**
@@ -88,9 +89,7 @@ public class Tuple implements Serializable {
      *            field index to return. Must be a valid index.
      */
     public Field getField(int i) {
-        if(i>=0 && i < m_tupleDesc.numFields())
-            return m_fieldList.get(i);
-        return null;
+        return m_fieldList[i];
     }
 
     /**
@@ -104,16 +103,14 @@ public class Tuple implements Serializable {
     public String toString() {
         // some code goes here
         String ans = "";
-        Debug.log("Tostring "+String.valueOf(m_fieldList.size()-1));
-        for(int i = 0; i < m_fieldList.size()-1; i++)
-        {
-            ans += m_fieldList.get(i).toString()+ "\t";
-        }
 
-        Debug.log("A:"+ans);
-        ans += m_fieldList.get(m_fieldList.size()-1).toString();
-        Debug.log("B:"+ans);
-        return ans;
+        for(int i = 0; i < m_fieldList.length; i++)
+        {
+            ans += m_fieldList[i].toString()+ "\t";
+        }
+        return ans.substring(0,ans.length()-1);
+
+        //return ans;
 
         // throw new UnsupportedOperationException("Implement this");
     }
@@ -125,7 +122,7 @@ public class Tuple implements Serializable {
     public Iterator<Field> fields()
     {
         // some code goes here
-        return m_fieldList.iterator();
+        return (Iterator<Field>) Arrays.asList(m_fieldList).iterator();
     }
 
     /**

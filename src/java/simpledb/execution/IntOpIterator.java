@@ -13,6 +13,7 @@ import java.util.*;
 public class IntOpIterator implements OpIterator{
     private IntegerAggregator integerAggregator;
     private Iterator<Tuple> iterator;
+    private boolean only_one = false;
     public List<Tuple> m_list = new ArrayList<>();
 
     IntOpIterator(IntegerAggregator integerAggregator)
@@ -33,8 +34,15 @@ public class IntOpIterator implements OpIterator{
                 int count = entry.getValue();
                 int sum = integerAggregator.mpSum.get(entry.getKey());
                 Tuple tuple = new Tuple(integerAggregator.tupleDesc);
-                tuple.setField(0, entry.getKey());
-                tuple.setField(1, new IntField(sum/count));
+                if(integerAggregator.only_one == false )
+                {
+                    tuple.setField(0, entry.getKey());
+                    tuple.setField(1, new IntField(sum/count));
+                }else
+                {
+                    tuple.setField(0, new IntField(sum/count));
+                }
+
                 m_list.add(tuple);
             }
 
@@ -61,6 +69,7 @@ public class IntOpIterator implements OpIterator{
             for (Map.Entry<Field, Integer> entry : integerAggregator.mpCount.entrySet()) {
                 int count = entry.getValue();
                 Tuple tuple = new Tuple(integerAggregator.tupleDesc);
+
                 tuple.setField(0, entry.getKey());
                 tuple.setField(1, new IntField(count));
                 m_list.add(tuple);
@@ -86,7 +95,7 @@ public class IntOpIterator implements OpIterator{
         if(hasNext())
             return iterator.next();
         else
-            return null;
+            throw new NoSuchElementException();
     }
 
     @Override

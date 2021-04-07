@@ -47,7 +47,7 @@ public class IntegerAggregator implements Aggregator {
      * @param what
      *            the aggregation operator
      */
-
+    public boolean only_one = false;
     public IntegerAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
         // some code goes here
         this.gbfield = gbfield;
@@ -58,8 +58,9 @@ public class IntegerAggregator implements Aggregator {
         {
             // Debug.log("No_grouping");
             Type [] types= {Type.INT_TYPE};
-            String [] names = {"name0"};
+            String [] names = {"name1"};
             tupleDesc = new TupleDesc(types,names);
+            only_one = true;
         }
         else
         {
